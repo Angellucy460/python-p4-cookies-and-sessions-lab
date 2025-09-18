@@ -1,36 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData
-from sqlalchemy_serializer import SerializerMixin
+from datetime import datetime
 
-metadata = MetaData(naming_convention={
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-})
+db = SQLAlchemy()
 
-db = SQLAlchemy(metadata=metadata)
-
-class Article(db.Model, SerializerMixin):
-    __tablename__ = 'articles'
+class Article(db.Model):
+    __tablename__ = "articles"
 
     id = db.Column(db.Integer, primary_key=True)
-    author = db.Column(db.String)
-    title = db.Column(db.String)
-    content = db.Column(db.String)
-    preview = db.Column(db.String)
-    minutes_to_read = db.Column(db.Integer)
-    date = db.Column(db.DateTime, server_default=db.func.now())
+    title = db.Column(db.String, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
-    def __repr__(self):
-        return f'Article {self.id} by {self.author}'
-
-class User(db.Model, SerializerMixin):
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-
-    articles = db.relationship('Article', backref='user')
-
-    def __repr__(self):
-        return f'User {self.name}, ID {self.id}'
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "body": self.body,
+            "author": self.author,
+            "created_at": self.created_at.isoformat(),
+        }

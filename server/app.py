@@ -1,34 +1,21 @@
-#!/usr/bin/env python3
+from app import app, db
+from models import Article
 
-from flask import Flask, make_response, jsonify, session
-from flask_migrate import Migrate
+with app.app_context():
+    db.drop_all()
+    db.create_all()
 
-from models import db, Article, User
+    article1 = Article(
+        title="First Article",
+        body="This is the body of the first article.",
+        author="Admin"
+    )
+    article2 = Article(
+        title="Second Article",
+        body="Another article for testing.",
+        author="Editor"
+    )
 
-app = Flask(__name__)
-app.secret_key = b'Y\xf1Xz\x00\xad|eQ\x80t \xca\x1a\x10K'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.json.compact = False
-
-migrate = Migrate(app, db)
-
-db.init_app(app)
-
-@app.route('/clear')
-def clear_session():
-    session['page_views'] = 0
-    return {'message': '200: Successfully cleared session data.'}, 200
-
-@app.route('/articles')
-def index_articles():
-
-    pass
-
-@app.route('/articles/<int:id>')
-def show_article(id):
-
-    pass
-
-if __name__ == '__main__':
-    app.run(port=5555)
+    db.session.add_all([article1, article2])
+    db.session.commit()
+    print("✅ Database seeded with articles")
